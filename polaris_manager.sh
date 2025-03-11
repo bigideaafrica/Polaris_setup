@@ -1,134 +1,3 @@
-#!/bin/bash
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-MAGENTA='\033[0;35m'
-BG_RED='\033[41m'
-BG_GREEN='\033[42m'
-
-# Error handling function
-error_exit() {
-    print_error "$1"
-    if [ -n "$2" ] && [ "$2" -eq 1 ]; then
-        exit 1
-    fi
-    return 1
-}
-
-# Function to check command status and handle errors
-check_command() {
-    if [ $? -ne 0 ]; then
-        error_exit "$1" "$2"
-        return 1
-    fi
-    return 0
-}
-
-# Function to print colored output
-print_status() {
-    echo -e "${BLUE}[*]${NC} $1"
-}
-
-print_success() {
-    echo -e "${GREEN}[+]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[-]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[!]${NC} $1"
-#!/bin/bash
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-MAGENTA='\033[0;35m'
-BG_RED='\033[41m'
-BG_GREEN='\033[42m'
-
-# Error handling function
-error_exit() {
-    print_error "$1"
-    if [ -n "$2" ] && [ "$2" -eq 1 ]; then
-        exit 1
-    fi
-    return 1
-}
-
-# Function to check command status and handle errors
-check_command() {
-    if [ $? -ne 0 ]; then
-        error_exit "$1" "$2"
-        return 1
-    fi
-    return 0
-}
-
-# Function to print colored output
-print_status() {
-    echo -e "${BLUE}[*]${NC} $1"
-}
-
-print_success() {
-    echo -e "${GREEN}[+]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[-]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[!]${NC} $1"
-}
-
-# Function to check if user is root
-is_root() {
-    [ "$EUID" -eq 0 ]
-}
-
-# Function to run command with sudo only if not root
-run_with_sudo() {
-    if is_root; then
-        "$@"
-    else
-        sudo "$@"
-    fi
-}
-
-# Function to install WSL automatically
-}
-
-# Function to check if user is root
-is_root() {
-    [ "$EUID" -eq 0 ]
-}
-
-# Function to run command with sudo only if not root
-run_with_sudo() {
-    if is_root; then
-        "$@"
-    else
-        sudo "$@"
-    fi
-}
-
-# Function to install WSL automatically
-install_wsl_automatically() {
-    clear
-    echo -e "${BG_GREEN}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BG_GREEN}${BOLD}║            Automatic WSL Installation Helper                 ║${NC}"
     echo -e "${BG_GREEN}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}"
     echo
@@ -196,6 +65,11 @@ show_wsl_instructions() {
     echo
     echo -e "${RED}${BOLD}⚠️  IMPORTANT: Polaris requires a Linux environment  ⚠️${NC}"
     echo -e "${YELLOW}This script can only run on Linux or Windows with WSL (Windows Subsystem for Linux)${NC}"
+    echo
+    echo -e "${BLUE}${BOLD}Follow these steps to set up WSL on Windows:${NC}"
+    echo
+    echo -e "${GREEN}${BOLD}Step 1:${NC} ${BLUE}Open PowerShell as Administrator and run:${NC}"
+    echo -e "${MAGENTA}   wsl --install${NC}"
 install_wsl_automatically() {
     clear
     echo -e "${BG_GREEN}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}"
@@ -2230,6 +2104,13 @@ troubleshoot_python_env() {
     echo
     read -p "Press Enter to return to the troubleshooting menu..."
     troubleshoot_issues
+}
+
+# Main loop
+while true; do
+    show_welcome_banner
+    show_menu
+done
 }
 
 # Main loop
