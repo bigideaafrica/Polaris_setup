@@ -47,6 +47,57 @@ print_warning() {
     echo -e "${YELLOW}[!]${NC} $1"
 }
 
+# Function to detect public IP and ask for confirmation
+get_public_ip() {
+    print_status "Detecting your public IP address..."
+    
+    # Try multiple services in case one fails
+    if curl -s https://api.ipify.org &>/dev/null; then
+        detected_ip=$(curl -s https://api.ipify.org)
+    elif curl -s https://ifconfig.me &>/dev/null; then
+        detected_ip=$(curl -s https://ifconfig.me)
+    elif curl -s https://icanhazip.com &>/dev/null; then
+        detected_ip=$(curl -s https://icanhazip.com)
+    else
+        print_error "Could not automatically detect your public IP address."
+        detected_ip=""
+    fi
+    
+    # If we found an IP, ask for confirmation
+    if [ ! -z "$detected_ip" ]; then
+        echo -e "${YELLOW}Detected public IP address: ${BOLD}$detected_ip${NC}"
+        read -p "Is this correct? (y/n): " confirm_ip
+        
+        if [[ $confirm_ip =~ ^[Yy]$ ]]; then
+            public_ip=$detected_ip
+            print_success "Using detected IP: $public_ip"
+        else
+            # If user says it's incorrect, ask for manual entry
+            while true; do
+                read -p "Enter your correct public IP address: " public_ip
+                if [[ $public_ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    break
+                else
+                    print_error "Invalid IP address format. Please try again."
+                fi
+            done
+        fi
+    else
+        # If detection failed, fall back to manual entry
+        while true; do
+            read -p "Enter your public IP address: " public_ip
+            if [[ $public_ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                break
+            else
+                print_error "Invalid IP address format. Please try again."
+            fi
+        done
+    fi
+    
+    # Return the IP address
+    echo $public_ip
+}
+
 # Function to install WSL automatically
 install_wsl_automatically() {
     clear
@@ -783,15 +834,8 @@ install_polaris() {
     print_status "Please provide the following information:"
     echo
     
-    # Get public IP
-    while true; do
-        read -p "Enter your public IP address: " public_ip
-        if [[ $public_ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            break
-        else
-            print_error "Invalid IP address format. Please try again."
-        fi
-    done
+    # Get public IP using the new function
+    public_ip=$(get_public_ip)
 
     # Get SSH username
     read -p "Enter SSH username: " ssh_user
@@ -1384,56 +1428,7 @@ troubleshoot_polaris_startup() {
             if [[ $recreate_env =~ ^[Yy]$ ]]; then
                 # Get user inputs to recreate .env
                 cd polaris-subnet
-                
-                # Back up the existing .env file
-                if [ -f ".env" ]; then
-                    mv .env .env.backup.$(date +%Y%m%d_%H%M%S)
-                fi
-                
-                # Create a new .env file
-                print_status "Creating new .env file..."
-                # Get public IP
-                while true; do
-                    read -p "Enter your public IP address: " public_ip
-                    if [[ $public_ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                        break
-                    else
-                        print_error "Invalid IP address format. Please try again."
-                    fi
-                done
-
-                # Get SSH username
-                read -p "Enter SSH username: " ssh_user
-
-                # Get SSH password
-                while true; do
-                    read -s -p "Enter SSH password: " ssh_password
-                    echo
-                    read -s -p "Confirm SSH password: " ssh_password_confirm
-                    echo
-                    if [ "$ssh_password" = "$ssh_password_confirm" ]; then
-                        break
-                    else
-                        print_error "Passwords do not match. Please try again."
-                    fi
-                done
-
-                # Get port range
-                get_port_range
-                
-                # Create .env file
-                cat > .env << EOF
-HOST=$public_ip
-API_PORT=8000
-SSH_PORT_RANGE_START=$port_start
-SSH_PORT_RANGE_END=$port_end
-SSH_PASSWORD=$ssh_password
-SSH_USER=$ssh_user
-SSH_HOST=$public_ip
-SSH_PORT=$port_start
-SERVER_URL=https://orchestrator-gekh.onrender.com/api/v1
-EOF
-                print_success "New .env file created."
+                update_env_file
                 cd ..
             fi
         fi
@@ -1441,8 +1436,10 @@ EOF
         print_error "Polaris configuration file (.env) not found."
         read -p "Would you like to recreate the .env file? (y/n): " recreate_env
         if [[ $recreate_env =~ ^[Yy]$ ]]; then
-            # Similar logic to recreate .env as above
-            print_status "Please recreate your Polaris configuration manually using option 2 from the main menu."
+            # Get user inputs to recreate .env
+            cd polaris-subnet
+            update_env_file
+            cd ..
         fi
     fi
     
@@ -1516,6 +1513,53 @@ EOF
     echo
     read -p "Press Enter to return to the troubleshooting menu..."
     troubleshoot_issues
+}
+
+# Function to update recreate .env file in troubleshoot_polaris_startup
+update_env_file() {
+    # Back up the existing .env file
+    if [ -f ".env" ]; then
+        mv .env .env.backup.$(date +%Y%m%d_%H%M%S)
+    fi
+    
+    # Create a new .env file
+    print_status "Creating new .env file..."
+    
+    # Get public IP using the new function
+    public_ip=$(get_public_ip)
+
+    # Get SSH username
+    read -p "Enter SSH username: " ssh_user
+
+    # Get SSH password
+    while true; do
+        read -s -p "Enter SSH password: " ssh_password
+        echo
+        read -s -p "Confirm SSH password: " ssh_password_confirm
+        echo
+        if [ "$ssh_password" = "$ssh_password_confirm" ]; then
+            break
+        else
+            print_error "Passwords do not match. Please try again."
+        fi
+    done
+
+    # Get port range
+    get_port_range
+    
+    # Create .env file
+    cat > .env << EOF
+HOST=$public_ip
+API_PORT=8000
+SSH_PORT_RANGE_START=$port_start
+SSH_PORT_RANGE_END=$port_end
+SSH_PASSWORD=$ssh_password
+SSH_USER=$ssh_user
+SSH_HOST=$public_ip
+SSH_PORT=$port_start
+SERVER_URL=https://orchestrator-gekh.onrender.com/api/v1
+EOF
+    print_success "New .env file created."
 }
 
 # Troubleshooting function for Python environment issues
