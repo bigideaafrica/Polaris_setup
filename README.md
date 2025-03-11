@@ -4,7 +4,7 @@
 
 1. Clone the repository:
 ```bash
-git clone [repository-url]
+git clone https://github.com/bigideaafrica/Polaris_setup
 cd [repository-name]
 ```
 
