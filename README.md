@@ -5,7 +5,7 @@
 1. Clone the repository:
 ```bash
 git clone https://github.com/bigideaafrica/Polaris_setup
-cd [repository-name]
+cd Polaris_setup
 ```
 
 2. Make the script executable:
