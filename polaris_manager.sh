@@ -1,75 +1,53 @@
-    echo -e "${BG_GREEN}${BOLD}║            Automatic WSL Installation Helper                 ║${NC}"
-    echo -e "${BG_GREEN}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}"
-    echo
-    echo -e "${BLUE}${BOLD}This will guide you through installing WSL automatically:${NC}"
-    echo
-    echo -e "${YELLOW}Step 1: Launching PowerShell to install WSL${NC}"
-    echo -e "${YELLOW}(You may see UAC prompts requesting administrator permissions)${NC}"
-    echo
-    
-    # Create a PowerShell script to install WSL
-    cat > install_wsl.ps1 << 'EOF'
-# Check if running as administrator
-if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Warning "This script requires administrator privileges. Attempting to restart as administrator..."
-    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
-    exit
+#!/bin/bash
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+MAGENTA='\033[0;35m'
+BG_RED='\033[41m'
+BG_GREEN='\033[42m'
+
+# Error handling function
+error_exit() {
+    print_error "$1"
+    if [ -n "$2" ] && [ "$2" -eq 1 ]; then
+        exit 1
+    fi
+    return 1
 }
 
-Write-Host "Starting WSL installation..." -ForegroundColor Green
-
-# Install WSL
-Write-Host "Running: wsl --install" -ForegroundColor Yellow
-wsl --install
-
-Write-Host "`nWSL installation process started!" -ForegroundColor Green
-Write-Host "After your computer restarts, you'll need to:" -ForegroundColor Yellow
-Write-Host "1. Install Ubuntu from Microsoft Store" -ForegroundColor Yellow
-Write-Host "2. Launch Ubuntu and set up your username/password" -ForegroundColor Yellow
-Write-Host "3. Copy the Polaris script to your WSL environment" -ForegroundColor Yellow
-Write-Host "`nPress any key to exit. Your computer will need to restart to complete the WSL installation." -ForegroundColor Cyan
-
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-EOF
-
-    echo -e "${GREEN}About to launch PowerShell as administrator to install WSL...${NC}"
-    echo -e "${YELLOW}If you see a Windows security prompt, select 'Yes' to continue.${NC}"
-    echo -e "${YELLOW}Your computer will need to restart after this process to complete the WSL installation.${NC}"
-    echo
-    read -p "Press Enter to continue or Ctrl+C to cancel..."
-    
-    # Execute the PowerShell script
-    powershell.exe -ExecutionPolicy Bypass -File install_wsl.ps1
-    
-    echo
-    echo -e "${BLUE}${BOLD}After your system restarts:${NC}"
-    echo -e "1. Install Ubuntu from Microsoft Store"
-    echo -e "2. Launch Ubuntu from Start Menu"
-    echo -e "3. Copy this script to your WSL environment using:"
-    echo -e "${MAGENTA}   cp /mnt/c/Users/$USERNAME/Desktop/polaris_manager.sh ~/${NC}"
-    echo -e "4. Make it executable: ${MAGENTA}chmod +x ~/polaris_manager.sh${NC}"
-    echo -e "5. Run it: ${MAGENTA}./polaris_manager.sh${NC}"
-    echo
-    echo -e "${RED}Your system will need to restart to complete the WSL installation.${NC}"
-    echo
-    read -p "Press Enter to exit. Please restart your computer after this..."
-    exit 0
+# Function to check command status and handle errors
+check_command() {
+    if [ $? -ne 0 ]; then
+        error_exit "$1" "$2"
+        return 1
+    fi
+    return 0
 }
 
-# Function to show WSL setup instructions
-show_wsl_instructions() {
-    clear
-    echo -e "${BG_GREEN}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BG_GREEN}${BOLD}║       Windows Subsystem for Linux (WSL) Setup Guide          ║${NC}"
-    echo -e "${BG_GREEN}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}"
-    echo
-    echo -e "${RED}${BOLD}⚠️  IMPORTANT: Polaris requires a Linux environment  ⚠️${NC}"
-    echo -e "${YELLOW}This script can only run on Linux or Windows with WSL (Windows Subsystem for Linux)${NC}"
-    echo
-    echo -e "${BLUE}${BOLD}Follow these steps to set up WSL on Windows:${NC}"
-    echo
-    echo -e "${GREEN}${BOLD}Step 1:${NC} ${BLUE}Open PowerShell as Administrator and run:${NC}"
-    echo -e "${MAGENTA}   wsl --install${NC}"
+# Function to print colored output
+print_status() {
+    echo -e "${BLUE}[*]${NC} $1"
+}
+
+print_success() {
+    echo -e "${GREEN}[+]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[-]${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[!]${NC} $1"
+}
+
+# Function to install WSL automatically
 install_wsl_automatically() {
     clear
     echo -e "${BG_GREEN}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}"
@@ -290,298 +268,6 @@ show_welcome_banner() {
     echo "██╔══██╗██╔═══██╗██║     ██╔══██╗██╔══██╗██║██╔════╝"
     echo "██████╔╝██║   ██║██║     ███████║██████╔╝██║███████╗"
     echo "██╔═══╝ ██║   ██║██║     ██╔══██║██╔══██╗██║╚════██║"
-    echo
-    echo -e "${BLUE}${BOLD}Follow these steps to set up WSL on Windows:${NC}"
-    echo
-    echo -e "${GREEN}${BOLD}Step 1:${NC} ${BLUE}Open PowerShell as Administrator and run:${NC}"
-    echo -e "${MAGENTA}   wsl --install${NC}"
-    echo
-    echo -e "${GREEN}${BOLD}Step 2:${NC} ${BLUE}Restart your computer${NC}"
-    echo -e "${YELLOW}   (This is required to complete the WSL installation)${NC}"
-    echo
-    echo -e "${GREEN}${BOLD}Step 3:${NC} ${BLUE}After restart, open Microsoft Store and install Ubuntu${NC}"
-    echo -e "${MAGENTA}   • Search for 'Ubuntu' in Microsoft Store${NC}"
-    echo -e "${MAGENTA}   • Click 'Get' or 'Install'${NC}"
-    echo
-    echo -e "${GREEN}${BOLD}Step 4:${NC} ${BLUE}Launch Ubuntu from Start Menu${NC}"
-    echo -e "${MAGENTA}   • Set up your username and password when prompted${NC}"
-    echo -e "${YELLOW}   • Remember these credentials as you'll need them later${NC}"
-    echo
-    echo -e "${GREEN}${BOLD}Step 5:${NC} ${BLUE}Update Ubuntu packages:${NC}"
-    echo -e "${MAGENTA}   sudo apt update && sudo apt upgrade -y${NC}"
-    echo
-    echo -e "${GREEN}${BOLD}Step 6:${NC} ${BLUE}Copy this script to your WSL environment:${NC}"
-    echo -e "${MAGENTA}   1. In Windows, copy this script to a location like C:\\Users\\YourUsername\\${NC}"
-    echo -e "${MAGENTA}   2. In WSL terminal, access it with: cp /mnt/c/Users/YourUsername/polaris_manager.sh ~/${NC}"
-    echo -e "${MAGENTA}   3. Make it executable: chmod +x ~/polaris_manager.sh${NC}"
-    echo -e "${MAGENTA}   4. Run it: ./polaris_manager.sh${NC}"
-    echo
-    echo -e "${CYAN}${BOLD}Docker on WSL:${NC}"
-    echo -e "${BLUE}• For optimal performance on WSL, install Docker Desktop for Windows${NC}"
-    echo -e "${BLUE}• Enable WSL 2 integration in Docker Desktop settings${NC}"
-    echo -e "${BLUE}• This configuration provides better performance and reliability${NC}"
-    echo
-    echo -e "${YELLOW}${BOLD}For detailed instructions, visit:${NC}"
-    echo -e "${BLUE}• WSL Installation: https://learn.microsoft.com/en-us/windows/wsl/install${NC}"
-    echo -e "${BLUE}• Docker with WSL: https://docs.docker.com/desktop/wsl/${NC}"
-    echo
-    echo -e "${GREEN}${BOLD}Press Enter to continue...${NC}"
-    read -p ""
-}
-
-# Function to check system compatibility
-check_system_compatibility() {
-    local os_name=$(uname -s)
-    local is_wsl=false
-
-    if [ -f /proc/version ] && grep -qi microsoft /proc/version; then
-        is_wsl=true
-    fi
-
-    if [ "$os_name" != "Linux" ] && [ "$is_wsl" = false ]; then
-        clear
-        echo -e "${BG_RED}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}"
-        echo -e "${BG_RED}${BOLD}║                 SYSTEM COMPATIBILITY ERROR                   ║${NC}"
-        echo -e "${BG_RED}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}"
-        echo
-        echo -e "${RED}${BOLD}⚠️  This script requires a Linux-based environment! ⚠️${NC}"
-        echo -e "${YELLOW}Current system detected: ${BOLD}$os_name${NC}"
-        echo
-        echo -e "${BLUE}${BOLD}You have two options:${NC}"
-        echo -e "${GREEN}${BOLD}1.${NC} ${BLUE}Run this script in a Linux environment (native Linux installation)${NC}"
-        echo -e "${GREEN}${BOLD}2.${NC} ${BLUE}Use Windows Subsystem for Linux (WSL) if you're on Windows${NC}"
-        echo
-        echo -e "${YELLOW}${BOLD}Would you like me to help you install WSL automatically? (y/n)${NC}"
-        read -p "${CYAN}> ${NC}" install_wsl_auto
-        
-        if [[ $install_wsl_auto =~ ^[Yy]$ ]]; then
-            install_wsl_automatically
-        else
-            echo -e "${YELLOW}${BOLD}Would you like to see detailed WSL setup instructions instead? (y/n)${NC}"
-            read -p "${CYAN}> ${NC}" show_wsl
-            if [[ $show_wsl =~ ^[Yy]$ ]]; then
-                show_wsl_instructions
-            fi
-        fi
-        exit 1
-    fi
-
-    # Check Linux distribution if needed
-    if [ "$is_wsl" = true ]; then
-        print_success "Running in WSL environment - ${GREEN}Compatible ✓${NC}"
-        echo -e "${YELLOW}Note: Docker in WSL may require special configuration.${NC}"
-        echo -e "${YELLOW}Select option 5 from the menu for more information.${NC}"
-    else
-        # Check for systemd support
-        if pidof systemd >/dev/null; then
-            print_success "Running in Linux environment with systemd - ${GREEN}Compatible ✓${NC}"
-        else
-            print_warning "Running in Linux environment without systemd"
-            echo -e "${YELLOW}Some features may require manual configuration${NC}"
-        fi
-    fi
-}
-
-# Function to check prerequisites
-check_prerequisites() {
-    local missing_prereqs=false
-    local missing_packages=""
-    
-    print_status "Checking system prerequisites..."
-    
-    # Check if sudo is available
-    if ! command_exists sudo; then
-        print_error "sudo is not installed or not in PATH"
-        missing_prereqs=true
-        missing_packages+=" sudo"
-    fi
-    
-    # Check for core utilities
-    for cmd in curl wget git; do
-        if ! command_exists $cmd; then
-            print_error "$cmd is not installed"
-            missing_prereqs=true
-            missing_packages+=" $cmd"
-        fi
-    done
-    
-    # Check for python3
-    if ! command_exists python3; then
-        print_error "python3 is not installed"
-        missing_prereqs=true
-        missing_packages+=" python3"
-    fi
-    
-    if [ "$missing_prereqs" = true ]; then
-        echo
-        print_warning "Missing prerequisites: ${missing_packages}"
-        echo -e "${YELLOW}These packages are required for Polaris installation.${NC}"
-        read -p "Would you like to install them now? (y/n): " install_prereqs
-        if [[ $install_prereqs =~ ^[Yy]$ ]]; then
-            print_status "Installing prerequisites..."
-            run_with_sudo apt-get update
-            run_with_sudo apt-get install -y $missing_packages
-            echo
-            print_success "Prerequisites installed successfully!"
-        else
-            print_error "Cannot continue without required prerequisites."
-            exit 1
-        fi
-    else
-        print_success "All basic prerequisites are installed!"
-    fi
-}
-
-# Function to display the welcome banner
-show_welcome_banner() {
-    clear
-    echo -e "${CYAN}${BOLD}"
-    echo "██████╗  ██████╗ ██╗      █████╗ ██████╗ ██╗███████╗"
-    echo "██╔══██╗██╔═══██╗██║     ██╔══██╗██╔══██╗██║██╔════╝"
-    echo "██████╔╝██║   ██║██║     ███████║██████╔╝██║███████╗"
-    echo "██╔═══╝ ██║   ██║██║     ██╔══██║██╔══██╗██║╚════██║"
-    echo "██║     ╚██████╔╝███████╗██║  ██║██║  ██║██║███████║"
-    echo "╚═╝      ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚══════╝"
-    echo -e "${NC}"
-    echo -e "${BOLD}           Compute Subnet Management Tool${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════${NC}"
-    echo
-    echo -e "${CYAN}${BOLD}About Polaris:${NC}"
-    echo -e "${BLUE}Polaris is a modern development workspace manager for distributed compute resources.${NC}"
-    echo -e "${BLUE}It simplifies managing compute resources, monitoring their status, and${NC}"
-    echo -e "${BLUE}automating key tasks in a distributed environment.${NC}"
-    echo
-    echo -e "${BG_RED}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BG_RED}${BOLD}║               ⚠️  LINUX ENVIRONMENT REQUIRED  ⚠️             ║${NC}"
-    echo -e "${BG_RED}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}"
-    echo -e "${YELLOW}${BOLD}This tool requires a Linux-based environment to run properly${NC}"
-    echo -e "${YELLOW}If you're on Windows, please use WSL (Windows Subsystem for Linux)${NC}"
-    echo -e "${YELLOW}Select option 5 from the menu for detailed WSL setup instructions${NC}"
-    echo
-    # Check system compatibility
-    check_system_compatibility
-    
-    # Check prerequisites only if system is compatible
-    check_prerequisites
-    echo
-}
-
-# Function to check if Polaris is installed
-check_polaris_installation() {
-    # First check if the repository exists
-    if [ ! -d "polaris-subnet" ]; then
-        return 1 # Not installed
-    fi
-
-    # Change into the repository directory
-    cd polaris-subnet || return 1
-
-    # Check if virtual environment exists and activate it
-    if [ ! -d "venv" ] || [ ! -f "venv/bin/activate" ]; then
-        cd ..
-        return 1 # Virtual environment not found
-    fi
-
-    # Try to activate virtual environment and check polaris
-    source venv/bin/activate
-    if ! command -v polaris &>/dev/null || ! polaris --help &>/dev/null; then
-        deactivate
-        cd ..
-        return 1 # Polaris command not working
-    fi
-
-    # Everything worked, clean up and return success
-    deactivate
-    cd ..
-    return 0
-}
-
-# Function to backup Polaris configuration
-backup_polaris_config() {
-    if [ -d "polaris-subnet" ] && [ -f "polaris-subnet/.env" ]; then
-        print_status "Creating backup of Polaris configuration..."
-        
-        local backup_dir="polaris_backup_$(date +%Y%m%d_%H%M%S)"
-        mkdir -p "$backup_dir"
-        
-        # Backup .env file
-        cp polaris-subnet/.env "$backup_dir/env_backup"
-        
-        # Backup other important configuration files if they exist
-        if [ -d "polaris-subnet/config" ]; then
-            cp -r polaris-subnet/config "$backup_dir/"
-        fi
-        
-        # Check if successful
-        if [ -f "$backup_dir/env_backup" ]; then
-            print_success "Configuration backup created successfully at: $backup_dir"
-            return 0
-        else
-            print_error "Failed to create backup"
-            rm -rf "$backup_dir" 2>/dev/null
-            return 1
-        fi
-    else
-        print_error "No Polaris configuration found to backup"
-        return 1
-    fi
-}
-
-# Function to enter Polaris environment
-enter_polaris_environment() {
-    # First check if the repository exists
-    if [ ! -d "polaris-subnet" ]; then
-        print_error "Polaris repository not found!"
-        return 1
-    fi
-
-    # Change into the repository directory
-    cd polaris-subnet || return 1
-
-    # Check if virtual environment exists
-    if [ ! -d "venv" ] || [ ! -f "venv/bin/activate" ]; then
-        print_error "Virtual environment not found!"
-        cd ..
-        return 1
-    fi
-
-    # Activate the environment
-    print_status "Activating Polaris environment..."
-    source venv/bin/activate
-
-    # Check if polaris command is available
-    if ! command -v polaris &>/dev/null; then
-        print_error "Polaris command not found in environment!"
-        deactivate
-        cd ..
-        return 1
-    fi
-
-    # Show available commands
-    clear
-    echo -e "${CYAN}${BOLD}Welcome to Polaris Environment${NC}"
-    echo -e "${GREEN}─────────────────────────────────────────────────────${NC}"
-    echo -e "${YELLOW}Available Polaris Commands:${NC}"
-    echo -e "• ${CYAN}polaris start${NC}     - Start Polaris services"
-    echo -e "• ${CYAN}polaris stop${NC}      - Stop Polaris services"
-    echo -e "• ${CYAN}polaris status${NC}    - Check service status"
-    echo -e "• ${CYAN}polaris logs${NC}      - View service logs"
-    echo -e "• ${CYAN}polaris register${NC}  - Register as a new miner"
-    echo -e "• ${CYAN}polaris --help${NC}    - Show all available commands"
-    echo
-    echo -e "${YELLOW}Current Status:${NC}"
-    polaris status
-    echo
-    echo -e "${GREEN}─────────────────────────────────────────────────────${NC}"
-    echo -e "${YELLOW}You are now in the Polaris environment.${NC}"
-    echo -e "${YELLOW}Type 'exit' to leave this environment.${NC}"
-    echo
-
-    # Start an interactive shell in the environment
-    $SHELL
-
-    # When shell exits, deactivate the environment
-    deactivate
     echo "██║     ╚██████╔╝███████╗██║  ██║██║  ██║██║███████║"
     echo "╚═╝      ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚══════╝"
     echo -e "${NC}"
@@ -977,157 +663,6 @@ uninstall_polaris() {
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         print_status "Uninstallation cancelled."
-    cd ..
-    echo -e "${GREEN}Exited Polaris environment.${NC}"
-}
-
-# Function to show menu and get user choice
-show_menu() {
-    local is_installed=$(check_polaris_installation && echo true || echo false)
-    
-    echo -e "${YELLOW}Available Options:${NC}"
-    echo -e "${GREEN}─────────────────────────────────────────────────────${NC}"
-    echo -e "1) ${CYAN}Install Polaris${NC}"
-    if [ "$is_installed" = true ]; then
-        echo -e "2) ${YELLOW}Reinstall Polaris${NC}"
-        echo -e "3) ${GREEN}Enter Polaris Environment${NC}"
-    fi
-    echo -e "4) ${RED}Uninstall Polaris${NC}"
-    echo -e "5) ${BLUE}Check Installation Status${NC}"
-    echo -e "6) ${MAGENTA}Show WSL Setup Instructions${NC}"
-    echo -e "7) ${GREEN}Backup Polaris Configuration${NC}"
-    echo -e "8) ${YELLOW}Advanced Options${NC}"
-    echo -e "9) ${RED}Exit${NC}"
-    echo -e "${GREEN}─────────────────────────────────────────────────────${NC}"
-    echo
-    read -p "Please select an option [1-9]: " choice
-    echo
-
-    case $choice in
-        1)
-            if [ "$is_installed" = true ]; then
-                print_warning "Polaris is already installed!"
-                echo -e "Choose ${YELLOW}Reinstall${NC} option if you want to install again."
-                sleep 2
-                return 0
-            else
-                install_polaris
-            fi
-            ;;
-        2)
-            if [ "$is_installed" = true ]; then
-                print_warning "This will reinstall Polaris. Your current installation will be removed."
-                read -p "Do you want to continue? (y/n): " confirm
-                if [[ $confirm =~ ^[Yy]$ ]]; then
-                    # Ask for backup before reinstall
-                    read -p "Do you want to backup your configuration first? (y/n): " backup_confirm
-                    if [[ $backup_confirm =~ ^[Yy]$ ]]; then
-                        backup_polaris_config
-                    fi
-                    uninstall_polaris
-                    install_polaris
-                fi
-            else
-                print_error "Polaris is not installed. Choose Install option instead."
-                sleep 2
-            fi
-            ;;
-        3)
-            if [ "$is_installed" = true ]; then
-                enter_polaris_environment
-            else
-                print_error "Invalid option"
-                sleep 1
-            fi
-            ;;
-        4)
-            if [ "$is_installed" = true ]; then
-                # Ask for backup before uninstall
-                read -p "Do you want to backup your configuration before uninstalling? (y/n): " backup_confirm
-                if [[ $backup_confirm =~ ^[Yy]$ ]]; then
-                    backup_polaris_config
-                fi
-                uninstall_polaris
-            else
-                print_error "Polaris is not installed."
-                sleep 2
-            fi
-            ;;
-        5)
-            if [ "$is_installed" = true ]; then
-                print_success "Polaris is installed and configured."
-                echo -e "${YELLOW}To use Polaris, select option 3 to enter Polaris environment.${NC}"
-                if command -v polaris &> /dev/null; then
-                    echo -e "${BLUE}Current Polaris status:${NC}"
-                    polaris status
-                fi
-            else
-                print_warning "Polaris is not installed on this system."
-            fi
-            echo
-            read -p "Press Enter to continue..."
-            ;;
-        6)
-            show_wsl_instructions
-            ;;
-        7)
-            if [ "$is_installed" = true ]; then
-                backup_polaris_config
-                read -p "Press Enter to continue..."
-            else
-                print_error "Polaris is not installed. Nothing to backup."
-                sleep 2
-            fi
-            ;;
-        8)
-            show_advanced_options
-            ;;
-        9)
-            echo -e "${YELLOW}Thank you for using Polaris Manager!${NC}"
-            exit 0
-            ;;
-        *)
-            print_error "Invalid option"
-            sleep 1
-            ;;
-    esac
-}
-
-# Function to check if a command exists
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
-}
-
-# Function to check and install Docker
-install_docker() {
-    if command_exists docker; then
-        print_success "Docker is already installed"
-        # Start Docker if not running
-        if pidof systemd >/dev/null && ! systemctl is-active --quiet docker; then
-            print_status "Starting Docker service..."
-            run_with_sudo systemctl start docker
-        fi
-    else
-        print_status "Installing Docker..."
-        
-        # Check if running in WSL
-        local is_wsl=false
-        if [ -f /proc/version ] && grep -qi microsoft /proc/version; then
-            is_wsl=true
-            print_warning "Installing Docker in WSL environment..."
-            echo -e "${YELLOW}For optimal performance, consider using Docker Desktop for Windows with WSL2 integration.${NC}"
-            echo -e "${YELLOW}See https://docs.docker.com/desktop/wsl/ for more information.${NC}"
-            sleep 3
-        fi
-        
-        # Remove old versions if they exist
-        for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do
-            run_with_sudo apt-get remove -y $pkg >/dev/null 2>&1
-        done
-
-        # Install Docker prerequisites
-        run_with_sudo apt-get update
-        run_with_sudo apt-get install -y ca-certificates curl gnupg
         return 0
     fi
 
@@ -2104,13 +1639,6 @@ troubleshoot_python_env() {
     echo
     read -p "Press Enter to return to the troubleshooting menu..."
     troubleshoot_issues
-}
-
-# Main loop
-while true; do
-    show_welcome_banner
-    show_menu
-done
 }
 
 # Main loop
