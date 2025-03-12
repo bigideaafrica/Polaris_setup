@@ -65,7 +65,12 @@ get_public_ip() {
     
     # If we found an IP, ask for confirmation
     if [ ! -z "$detected_ip" ]; then
+        # Make the detected IP highly visible
+        echo
+        echo -e "${YELLOW}================================${NC}"
         echo -e "${YELLOW}Detected public IP address: ${BOLD}$detected_ip${NC}"
+        echo -e "${YELLOW}================================${NC}"
+        echo
         read -p "Is this correct? (y/n): " confirm_ip
         
         if [[ $confirm_ip =~ ^[Yy]$ ]]; then
@@ -73,9 +78,12 @@ get_public_ip() {
             print_success "Using detected IP: $public_ip"
         else
             # If user says it's incorrect, ask for manual entry
+            echo
+            print_status "Please enter your correct IP address:"
             while true; do
                 read -p "Enter your correct public IP address: " public_ip
                 if [[ $public_ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    print_success "Using manual IP: $public_ip"
                     break
                 else
                     print_error "Invalid IP address format. Please try again."
@@ -84,9 +92,12 @@ get_public_ip() {
         fi
     else
         # If detection failed, fall back to manual entry
+        echo
+        print_warning "Automatic IP detection failed. Please enter your IP manually:"
         while true; do
             read -p "Enter your public IP address: " public_ip
             if [[ $public_ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                print_success "Using manual IP: $public_ip"
                 break
             else
                 print_error "Invalid IP address format. Please try again."
@@ -94,8 +105,9 @@ get_public_ip() {
         done
     fi
     
-    # Return the IP address
-    echo $public_ip
+    # Store result in a global variable instead of returning it
+    # This allows the caller to get the value without capturing the output
+    DETECTED_PUBLIC_IP="$public_ip"
 }
 
 # Function to install WSL automatically
@@ -828,8 +840,10 @@ install_polaris() {
     print_status "Please provide the following information:"
     echo
     
-    # Get public IP using the new function
-    public_ip=$(get_public_ip)
+    # Get public IP using the function that now sets a global variable
+    get_public_ip
+    # Use the global variable set by the function
+    public_ip="$DETECTED_PUBLIC_IP"
 
     # Get SSH username
     read -p "Enter SSH username: " ssh_user
@@ -1519,8 +1533,10 @@ update_env_file() {
     # Create a new .env file
     print_status "Creating new .env file..."
     
-    # Get public IP using the new function
-    public_ip=$(get_public_ip)
+    # Get public IP using the function that now sets a global variable
+    get_public_ip
+    # Use the global variable set by the function
+    public_ip="$DETECTED_PUBLIC_IP"
 
     # Get SSH username
     read -p "Enter SSH username: " ssh_user
