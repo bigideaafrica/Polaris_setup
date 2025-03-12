@@ -472,10 +472,8 @@ show_menu() {
     echo -e "${YELLOW}Available Options:${NC}"
     echo -e "${GREEN}─────────────────────────────────────────────────────${NC}"
     echo -e "1) ${CYAN}Install Polaris${NC}"
-    if [ "$is_installed" = true ]; then
-        echo -e "2) ${YELLOW}Reinstall Polaris${NC}"
-        echo -e "3) ${GREEN}Enter Polaris Environment${NC}"
-    fi
+    echo -e "2) ${YELLOW}Reinstall Polaris${NC}"
+    echo -e "3) ${GREEN}Enter Polaris Environment${NC}"
     echo -e "4) ${RED}Uninstall Polaris${NC}"
     echo -e "5) ${BLUE}Check Installation Status${NC}"
     echo -e "6) ${MAGENTA}Show WSL Setup Instructions${NC}"
@@ -499,42 +497,38 @@ show_menu() {
             fi
             ;;
         2)
-            if [ "$is_installed" = true ]; then
-                print_warning "This will reinstall Polaris. Your current installation will be removed."
-                read -p "Do you want to continue? (y/n): " confirm
-                if [[ $confirm =~ ^[Yy]$ ]]; then
-                    # Ask for backup before reinstall
-                    read -p "Do you want to backup your configuration first? (y/n): " backup_confirm
-                    if [[ $backup_confirm =~ ^[Yy]$ ]]; then
-                        backup_polaris_config
-                    fi
-                    uninstall_polaris
-                    install_polaris
-                fi
-            else
-                print_error "Polaris is not installed. Choose Install option instead."
+            if [ "$is_installed" = false ]; then
+                print_warning "Polaris is not installed yet!"
+                echo -e "Please choose ${CYAN}Install Polaris${NC} first."
                 sleep 2
+                return 0
+            else
+                install_polaris --reinstall
             fi
             ;;
         3)
-            if [ "$is_installed" = true ]; then
-                enter_polaris_environment
+            if [ "$is_installed" = false ]; then
+                print_warning "Polaris is not installed yet!"
+                echo -e "Please choose ${CYAN}Install Polaris${NC} first."
+                sleep 2
+                return 0
             else
-                print_error "Invalid option"
-                sleep 1
+                enter_polaris_environment
             fi
             ;;
         4)
-            if [ "$is_installed" = true ]; then
+            if [ "$is_installed" = false ]; then
+                print_warning "Polaris is not installed yet!"
+                echo -e "Nothing to uninstall."
+                sleep 2
+                return 0
+            else
                 # Ask for backup before uninstall
                 read -p "Do you want to backup your configuration before uninstalling? (y/n): " backup_confirm
                 if [[ $backup_confirm =~ ^[Yy]$ ]]; then
                     backup_polaris_config
                 fi
                 uninstall_polaris
-            else
-                print_error "Polaris is not installed."
-                sleep 2
             fi
             ;;
         5)
